@@ -4,178 +4,147 @@
  */
 package vista;
 
-/**
- *
- * @author bossstore
- */
 import controlador.CitaControlador;
 import dto.CitaDTO;
 import dto.MascotaDTO;
 import dto.PropietarioDTO;
 import dto.VeterinarioDTO;
+import persistencia.Singleton;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import singleton.Singleton;
+import java.time.format.DateTimeParseException;
 
 public class PanelCita extends JPanel {
-    private JTextField txtId, txtFechaHora, txtMotivo;
-    private JComboBox<MascotaDTO> comboMascota;
-    private JComboBox<PropietarioDTO> comboPropietario;
-    private JComboBox<VeterinarioDTO> comboVeterinario;
-    private JTable tabla;
-    private DefaultTableModel modeloTabla;
 
-    private final CitaControlador controlador;
+    private final JTextField txtId = new JTextField(10);
+    private final JComboBox<MascotaDTO> comboMascota = new JComboBox<>();
+    private final JComboBox<PropietarioDTO> comboPropietario = new JComboBox<>();
+    private final JComboBox<VeterinarioDTO> comboVeterinario = new JComboBox<>();
+    private final JTextField txtFechaHora = new JTextField(20); // yyyy-MM-ddTHH:mm
+    private final JTextField txtMotivo = new JTextField(20);
+    private final JTable tabla = new JTable();
+    private final DefaultTableModel modelo = new DefaultTableModel();
 
-    public PanelCita(CitaControlador controlador) {
-        this.controlador = controlador;
+    public PanelCita() {
         setLayout(new BorderLayout());
 
-        // Panel de formulario
         JPanel panelFormulario = new JPanel(new GridLayout(7, 2, 5, 5));
-        txtId = new JTextField();
-        comboMascota = new JComboBox<>();
-        comboPropietario = new JComboBox<>();
-        comboVeterinario = new JComboBox<>();
-        txtFechaHora = new JTextField(); // formato: 2025-07-25T10:30
-        txtMotivo = new JTextField();
+        panelFormulario.setBorder(BorderFactory.createTitledBorder("Gestión de Citas"));
 
         panelFormulario.add(new JLabel("ID:"));
         panelFormulario.add(txtId);
+
         panelFormulario.add(new JLabel("Mascota:"));
         panelFormulario.add(comboMascota);
+
         panelFormulario.add(new JLabel("Propietario:"));
         panelFormulario.add(comboPropietario);
+
         panelFormulario.add(new JLabel("Veterinario:"));
         panelFormulario.add(comboVeterinario);
-        panelFormulario.add(new JLabel("Fecha y hora (2025-07-25T10:30):"));
+
+        panelFormulario.add(new JLabel("Fecha y Hora (yyyy-MM-ddTHH:mm):"));
         panelFormulario.add(txtFechaHora);
+
         panelFormulario.add(new JLabel("Motivo:"));
         panelFormulario.add(txtMotivo);
 
-        // Botones
-        JPanel panelBotones = new JPanel();
         JButton btnGuardar = new JButton("Guardar");
-        JButton btnBuscar = new JButton("Buscar");
-        JButton btnActualizar = new JButton("Actualizar");
-        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnLimpiar = new JButton("Limpiar");
 
-        panelBotones.add(btnGuardar);
-        panelBotones.add(btnBuscar);
-        panelBotones.add(btnActualizar);
-        panelBotones.add(btnEliminar);
+        panelFormulario.add(btnGuardar);
+        panelFormulario.add(btnLimpiar);
 
         // Tabla
-        modeloTabla = new DefaultTableModel(new String[]{"ID", "Mascota", "Propietario", "Veterinario", "Fecha", "Motivo"}, 0);
-        tabla = new JTable(modeloTabla);
-        JScrollPane scroll = new JScrollPane(tabla);
+        modelo.setColumnIdentifiers(new String[]{"ID", "Mascota", "Propietario", "Veterinario", "FechaHora", "Motivo"});
+        tabla.setModel(modelo);
+        JScrollPane scrollPane = new JScrollPane(tabla);
 
         add(panelFormulario, BorderLayout.NORTH);
-        add(panelBotones, BorderLayout.CENTER);
-        add(scroll, BorderLayout.SOUTH);
+        add(scrollPane, BorderLayout.CENTER);
 
+        // Llenar combos
         cargarCombos();
-        cargarTabla();
 
-        // Acción Guardar
+        // Controlador
+        CitaControlador controlador = Singleton.getInstancia().getCitaControlador();
+
         btnGuardar.addActionListener(e -> {
             try {
-                int id = Integer.parseInt(txtId.getText());
+                if (txtId.getText().isEmpty() || txtFechaHora.getText().isEmpty() || txtMotivo.getText().isEmpty()) {
+                    throw new IllegalArgumentException("Todos los campos deben estar completos.");
+                }
+
+                int id = Integer.parseInt(txtId.getText().trim());
                 MascotaDTO mascota = (MascotaDTO) comboMascota.getSelectedItem();
                 PropietarioDTO propietario = (PropietarioDTO) comboPropietario.getSelectedItem();
                 VeterinarioDTO veterinario = (VeterinarioDTO) comboVeterinario.getSelectedItem();
-                LocalDateTime fechaHora = LocalDateTime.parse(txtFechaHora.getText());
-                String motivo = txtMotivo.getText();
+                String motivo = txtMotivo.getText().trim();
 
-                controlador.agregarCita(id, mascota, propietario, veterinario, fechaHora, motivo);
-                JOptionPane.showMessageDialog(this, "Cita registrada correctamente.");
-                cargarTabla();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+                LocalDateTime fechaHora = LocalDateTime.parse(txtFechaHora.getText().trim(), formatter);
+
+                CitaDTO cita = new CitaDTO(id, mascota, propietario, veterinario, fechaHora, motivo);
+                controlador.agregar(cita);
+                actualizarTabla(controlador);
+                limpiarCampos();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "El ID debe ser un número entero.");
+            } catch (DateTimeParseException ex) {
+                JOptionPane.showMessageDialog(this, "Fecha y hora inválidas. Usa el formato: yyyy-MM-ddTHH:mm");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
             }
         });
 
-        // Acción Buscar
-        btnBuscar.addActionListener(e -> {
-            try {
-                int id = Integer.parseInt(txtId.getText());
-                CitaDTO c = controlador.buscarPorId(id);
-                txtMotivo.setText(c.getMotivo());
-                txtFechaHora.setText(c.getFechaHora().toString());
-                comboMascota.setSelectedItem(c.getMascota());
-                comboPropietario.setSelectedItem(c.getPropietario());
-                comboVeterinario.setSelectedItem(c.getVeterinario());
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        btnLimpiar.addActionListener(e -> limpiarCampos());
 
-        // Acción Actualizar
-        btnActualizar.addActionListener(e -> {
-            try {
-                int id = Integer.parseInt(txtId.getText());
-                MascotaDTO mascota = (MascotaDTO) comboMascota.getSelectedItem();
-                PropietarioDTO propietario = (PropietarioDTO) comboPropietario.getSelectedItem();
-                VeterinarioDTO veterinario = (VeterinarioDTO) comboVeterinario.getSelectedItem();
-                LocalDateTime fechaHora = LocalDateTime.parse(txtFechaHora.getText());
-                String motivo = txtMotivo.getText();
-
-                controlador.actualizarCita(id, mascota, propietario, veterinario, fechaHora, motivo);
-                JOptionPane.showMessageDialog(this, "Cita actualizada.");
-                cargarTabla();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        // Acción Eliminar
-        btnEliminar.addActionListener(e -> {
-            try {
-                int id = Integer.parseInt(txtId.getText());
-                controlador.eliminarCita(id);
-                JOptionPane.showMessageDialog(this, "Cita eliminada.");
-                cargarTabla();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        actualizarTabla(controlador);
     }
 
     private void cargarCombos() {
         comboMascota.removeAllItems();
-        for (MascotaDTO m : Singleton.getInstance().getMascotaDAO().obtenerTodas()) {
+        comboPropietario.removeAllItems();
+        comboVeterinario.removeAllItems();
+
+        for (MascotaDTO m : Singleton.getInstancia().getMascotaControlador().obtenerTodos()) {
             comboMascota.addItem(m);
         }
-
-        comboPropietario.removeAllItems();
-        for (PropietarioDTO p : Singleton.getInstance().getPropietarioDAO().obtenerTodos()) {
+        for (PropietarioDTO p : Singleton.getInstancia().getPropietarioControlador().obtenerTodos()) {
             comboPropietario.addItem(p);
         }
-
-
-        comboVeterinario.removeAllItems();
-        for (VeterinarioDTO v : Singleton.getInstance().getVeterinarioDAO().obtenerTodos()) {
+        for (VeterinarioDTO v : Singleton.getInstancia().getVeterinarioControlador().obtenerTodos()) {
             comboVeterinario.addItem(v);
         }
     }
 
-    private void cargarTabla() {
-        modeloTabla.setRowCount(0);
+    private void actualizarTabla(CitaControlador controlador) {
+        modelo.setRowCount(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        for (CitaDTO c : controlador.obtenerTodas()) {
-            modeloTabla.addRow(new Object[]{
-                c.getId(),
-                c.getMascota().getNombre(),
-                c.getPropietario().getNombre(),
-                c.getVeterinario().getNombre(),
-                c.getFechaHora().format(formatter),
-                c.getMotivo()
+        for (CitaDTO cita : controlador.obtenerTodos()) {
+            modelo.addRow(new Object[]{
+                    cita.getId(),
+                    cita.getMascota().getNombre(),
+                    cita.getPropietario().getNombre(),
+                    cita.getVeterinario().getNombre(),
+                    cita.getFechaHora().format(formatter),
+                    cita.getMotivo()
             });
         }
     }
+
+    private void limpiarCampos() {
+        txtId.setText("");
+        txtFechaHora.setText("");
+        txtMotivo.setText("");
+        if (comboMascota.getItemCount() > 0) comboMascota.setSelectedIndex(0);
+        if (comboPropietario.getItemCount() > 0) comboPropietario.setSelectedIndex(0);
+        if (comboVeterinario.getItemCount() > 0) comboVeterinario.setSelectedIndex(0);
+    }
 }
+

@@ -4,8 +4,6 @@
  */
 package clinicaveterinaria;
 
-import javax.swing.SwingUtilities;
-import vista.MainFrame;
 
 /**
  *
@@ -17,10 +15,7 @@ public class ClinicaVeterinaria {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame();
-            frame.setVisible(true);
-        });
+        
     }
     
 }

@@ -4,71 +4,46 @@
  */
 package controlador;
 
+
+
 import dao.CitaDAO;
 import dto.CitaDTO;
-import dto.MascotaDTO;
-import dto.PropietarioDTO;
-import dto.VeterinarioDTO;
 import excepciones.CampoVacioException;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
-/**
- *
- * @author bossstore
- */
 public class CitaControlador {
-    private final CitaDAO citaDAO;
+    private final CitaDAO dao;
 
-    public CitaControlador(CitaDAO citaDAO) {
-        this.citaDAO = citaDAO;
+    public CitaControlador(CitaDAO dao) {
+        this.dao = dao;
     }
 
-    // Agregar cita
-    public void agregarCita(int id, MascotaDTO mascota, PropietarioDTO propietario,
-                            VeterinarioDTO veterinario, LocalDateTime fechaHora, String motivo)
-            throws CampoVacioException, EntidadDuplicadaException {
+    public void agregar(CitaDTO cita) throws CampoVacioException, EntidadDuplicadaException {
+        validar(cita);
+        dao.agregar(cita);
+    }
+    
+    
 
-        validarCampos(mascota, propietario, veterinario, fechaHora, motivo);
-
-        CitaDTO nueva = new CitaDTO(id, mascota, propietario, veterinario, fechaHora, motivo);
-        citaDAO.agregar(nueva);
+    public void actualizar(CitaDTO cita) throws CampoVacioException, EntidadNoEncontradaException {
+        validar(cita);
+        dao.actualizar(cita);
     }
 
-    // Buscar por ID
-    public CitaDTO buscarPorId(int id) throws EntidadNoEncontradaException {
-        return citaDAO.buscarPorId(id);
+    public void eliminar(int id) throws EntidadNoEncontradaException {
+        dao.eliminar(id);
     }
 
-    // Actualizar
-    public void actualizarCita(int id, MascotaDTO mascota, PropietarioDTO propietario,
-                               VeterinarioDTO veterinario, LocalDateTime fechaHora, String motivo)
-            throws CampoVacioException, EntidadNoEncontradaException {
-
-        validarCampos(mascota, propietario, veterinario, fechaHora, motivo);
-
-        CitaDTO actualizada = new CitaDTO(id, mascota, propietario, veterinario, fechaHora, motivo);
-        citaDAO.actualizar(actualizada);
+    public List<CitaDTO> obtenerTodos() {
+        return dao.obtenerTodos();
     }
 
-    // Eliminar
-    public void eliminarCita(int id) throws EntidadNoEncontradaException {
-        citaDAO.eliminar(id);
-    }
-
-    // Obtener todas
-    public List<CitaDTO> obtenerTodas() {
-        return citaDAO.obtenerTodas();
-    }
-
-    // Validar campos
-    private void validarCampos(MascotaDTO mascota, PropietarioDTO propietario, VeterinarioDTO veterinario,
-                               LocalDateTime fechaHora, String motivo) throws CampoVacioException {
-
-        if (mascota == null || propietario == null || veterinario == null ||
-            fechaHora == null || motivo.isBlank()) {
+    private void validar(CitaDTO cita) throws CampoVacioException {
+        if (cita.getMascota() == null || cita.getPropietario() == null || cita.getVeterinario() == null ||
+            cita.getFechaHora() == null || cita.getMotivo().isEmpty()) {
             throw new CampoVacioException("Todos los campos de la cita deben estar completos.");
         }
     }

@@ -4,13 +4,12 @@
  */
 package dto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-/**
- *
- * @author bossstore
- */
-public class VacunaDTO {
+public class VacunaDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private int id;
     private MascotaDTO mascota;
     private String tipo;
@@ -25,16 +24,48 @@ public class VacunaDTO {
         this.fechaAplicacion = fechaAplicacion;
     }
 
-    // Getters y Setters
-    public int getId() { return id; }
-    public MascotaDTO getMascota() { return mascota; }
-    public String getTipo() { return tipo; }
-    public String getDosis() { return dosis; }
-    public LocalDate getFechaAplicacion() { return fechaAplicacion; }
+    public int getId() {
+        return id;
+    }
 
-    public void setId(int id) { this.id = id; }
-    public void setMascota(MascotaDTO mascota) { this.mascota = mascota; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
-    public void setDosis(String dosis) { this.dosis = dosis; }
-    public void setFechaAplicacion(LocalDate fechaAplicacion) { this.fechaAplicacion = fechaAplicacion; }
+    public MascotaDTO getMascota() {
+        return mascota;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public String getDosis() {
+        return dosis;
+    }
+
+    public LocalDate getFechaAplicacion() {
+        return fechaAplicacion;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setMascota(MascotaDTO mascota) {
+        this.mascota = mascota;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public void setDosis(String dosis) {
+        this.dosis = dosis;
+    }
+
+    public void setFechaAplicacion(LocalDate fechaAplicacion) {
+        this.fechaAplicacion = fechaAplicacion;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id + ", Mascota: " + mascota.getNombre() + ", Tipo: " + tipo;
+    }
 }

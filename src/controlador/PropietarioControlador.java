@@ -9,63 +9,37 @@ import dto.PropietarioDTO;
 import excepciones.CampoVacioException;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
+
 import java.util.List;
 
-
-/**
- *
- * @author bossstore
- */
 public class PropietarioControlador {
-    private final PropietarioDAO propietarioDAO;
 
-    public PropietarioControlador(PropietarioDAO propietarioDAO) {
-        this.propietarioDAO = propietarioDAO;
+    private final PropietarioDAO dao;
+
+    public PropietarioControlador(PropietarioDAO dao) {
+        this.dao = dao;
     }
 
-    // Agregar un nuevo propietario
-    public void agregarPropietario(int id, String nombre, String documento, String telefono, String correo)
-            throws CampoVacioException, EntidadDuplicadaException {
-
-        validarCampos(nombre, documento, telefono, correo);
-
-        PropietarioDTO nuevo = new PropietarioDTO(id, nombre, documento, telefono, correo);
-        propietarioDAO.agregar(nuevo);
+    public void agregar(PropietarioDTO p) throws CampoVacioException, EntidadDuplicadaException {
+        validar(p);
+        dao.agregar(p);
     }
 
-    // Buscar propietario por ID
-    public PropietarioDTO buscarPorId(int id) throws EntidadNoEncontradaException {
-        return propietarioDAO.buscarPorId(id);
+    public void actualizar(PropietarioDTO p) throws CampoVacioException, EntidadNoEncontradaException {
+        validar(p);
+        dao.actualizar(p);
     }
 
-    // Buscar propietario por documento
-    public PropietarioDTO buscarPorDocumento(String documento) throws EntidadNoEncontradaException {
-        return propietarioDAO.buscarPorDocumento(documento);
+    public void eliminar(int id) throws EntidadNoEncontradaException {
+        dao.eliminar(id);
     }
 
-    // Actualizar un propietario existente
-    public void actualizarPropietario(int id, String nombre, String documento, String telefono, String correo)
-            throws CampoVacioException, EntidadNoEncontradaException {
-
-        validarCampos(nombre, documento, telefono, correo);
-
-        PropietarioDTO actualizado = new PropietarioDTO(id, nombre, documento, telefono, correo);
-        propietarioDAO.actualizar(actualizado);
-    }
-
-    // Eliminar propietario
-    public void eliminarPropietario(int id) throws EntidadNoEncontradaException {
-        propietarioDAO.eliminar(id);
-    }
-
-    // Obtener todos los propietarios
     public List<PropietarioDTO> obtenerTodos() {
-        return propietarioDAO.obtenerTodos();
+        return dao.obtenerTodos();
     }
 
-    // Validar que ningún campo esté vacío
-    private void validarCampos(String nombre, String documento, String telefono, String correo) throws CampoVacioException {
-        if (nombre.isBlank() || documento.isBlank() || telefono.isBlank() || correo.isBlank()) {
+    private void validar(PropietarioDTO p) throws CampoVacioException {
+        if (p.getNombre().isEmpty() || p.getDocumento().isEmpty() || p.getTelefono().isEmpty() || p.getCorreo().isEmpty()) {
             throw new CampoVacioException("Todos los campos deben estar completos.");
         }
     }

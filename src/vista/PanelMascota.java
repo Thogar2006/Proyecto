@@ -10,42 +10,36 @@ import dto.PropietarioDTO;
 import excepciones.CampoVacioException;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
-import singleton.Singleton;
+
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import persistencia.Singleton;
 
 public class PanelMascota extends JPanel {
 
-    private final JTextField txtId = new JTextField(10);
-    private final JTextField txtNombre = new JTextField(15);
-    private final JTextField txtEspecie = new JTextField(15);
-    private final JTextField txtRaza = new JTextField(15);
-    private final JTextField txtEdad = new JTextField(5);
-
-    private final JComboBox<String> comboPropietario = new JComboBox<>();
-
-    private final JButton btnGuardar = new JButton("Guardar");
-    private final JButton btnBuscar = new JButton("Buscar");
-    private final JButton btnEditar = new JButton("Editar");
-    private final JButton btnEliminar = new JButton("Eliminar");
-
-    private final JTable tabla;
-    private final DefaultTableModel modeloTabla;
+    private JTextField txtId, txtNombre, txtEspecie, txtRaza, txtEdad;
+    private JComboBox<PropietarioDTO> comboPropietario;
+    private JTable tabla;
+    private DefaultTableModel modelo;
 
     private final MascotaControlador controlador;
 
     public PanelMascota() {
-        
-        controlador = new MascotaControlador(Singleton.getInstance().getMascotaDAO());
-
+        controlador = Singleton.getInstancia().getMascotaControlador();
         setLayout(new BorderLayout());
 
-        // --- Panel Formulario ---
+        // Panel superior - formulario
         JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 5, 5));
-        panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos de la Mascota"));
+
+        txtId = new JTextField();
+        txtNombre = new JTextField();
+        txtEspecie = new JTextField();
+        txtRaza = new JTextField();
+        txtEdad = new JTextField();
+        comboPropietario = new JComboBox<>();
 
         panelFormulario.add(new JLabel("ID:"));
         panelFormulario.add(txtId);
@@ -60,123 +54,146 @@ public class PanelMascota extends JPanel {
         panelFormulario.add(new JLabel("Propietario:"));
         panelFormulario.add(comboPropietario);
 
-        add(panelFormulario, BorderLayout.NORTH);
+        // Panel inferior - botones
+        JPanel panelBotones = new JPanel();
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnEditar = new JButton("Editar");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnLimpiar = new JButton("Limpiar");
 
-        // --- Tabla ---
-        modeloTabla = new DefaultTableModel(new String[]{"ID", "Nombre", "Especie", "Raza", "Edad", "Propietario"}, 0);
-        tabla = new JTable(modeloTabla);
-        JScrollPane scrollTabla = new JScrollPane(tabla);
-        scrollTabla.setBorder(BorderFactory.createTitledBorder("Lista de Mascotas"));
-
-        add(scrollTabla, BorderLayout.CENTER);
-
-        // --- Botones ---
-        JPanel panelBotones = new JPanel(new FlowLayout());
         panelBotones.add(btnGuardar);
-        panelBotones.add(btnBuscar);
         panelBotones.add(btnEditar);
         panelBotones.add(btnEliminar);
+        panelBotones.add(btnLimpiar);
 
-        add(panelBotones, BorderLayout.SOUTH);
+        // Tabla
+        modelo = new DefaultTableModel(new String[]{"ID", "Nombre", "Especie", "Raza", "Edad", "Propietario"}, 0);
+        tabla = new JTable(modelo);
+        JScrollPane scroll = new JScrollPane(tabla);
 
-        // Eventos
+        // Agregar paneles
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        panelSuperior.add(panelFormulario, BorderLayout.CENTER);
+        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
+
+        // Agregar a la vista principal
+        add(panelSuperior, BorderLayout.NORTH);
+        add(scroll, BorderLayout.CENTER);
+        cargarComboPropietarios();
+        cargarTabla();
+
+        // Acciones
         btnGuardar.addActionListener(e -> guardar());
-        btnBuscar.addActionListener(e -> buscar());
         btnEditar.addActionListener(e -> editar());
         btnEliminar.addActionListener(e -> eliminar());
+        btnLimpiar.addActionListener(e -> limpiar());
 
-        cargarComboPropietarios();
-        actualizarTabla();
+        tabla.getSelectionModel().addListSelectionListener(e -> cargarSeleccion());
     }
 
     private void cargarComboPropietarios() {
         comboPropietario.removeAllItems();
-        List<PropietarioDTO> propietarios = Singleton.getInstance().getPropietarioDAO().obtenerTodos();
+        List<PropietarioDTO> propietarios = Singleton.getInstancia().getPropietarioControlador().obtenerTodos();
         for (PropietarioDTO p : propietarios) {
-            comboPropietario.addItem(p.getId() + " - " + p.getNombre());
+            comboPropietario.addItem(p);
         }
     }
 
-    private void actualizarTabla() {
-        modeloTabla.setRowCount(0);
-        List<MascotaDTO> mascotas = Singleton.getInstance().getMascotaDAO().obtenerTodas();
-        for (MascotaDTO m : mascotas) {
-            modeloTabla.addRow(new Object[]{
-                    m.getId(),
-                    m.getNombre(),
-                    m.getEspecie(),
-                    m.getRaza(),
-                    m.getEdad(),
-                    m.getPropietario().getNombre()
+    private void cargarTabla() {
+        modelo.setRowCount(0);
+        for (MascotaDTO m : controlador.obtenerTodos()) {
+            modelo.addRow(new Object[]{
+                    m.getId(), m.getNombre(), m.getEspecie(),
+                    m.getRaza(), m.getEdad(), m.getPropietario().getNombre()
             });
         }
     }
 
     private void guardar() {
         try {
-            int id = Integer.parseInt(txtId.getText());
-            String nombre = txtNombre.getText();
-            String especie = txtEspecie.getText();
-            String raza = txtRaza.getText();
-            int edad = Integer.parseInt(txtEdad.getText());
-            PropietarioDTO propietario = obtenerPropietarioSeleccionado();
-
-            controlador.agregarMascota(id, nombre, especie, raza, edad, propietario);
-            JOptionPane.showMessageDialog(this, "Mascota registrada.");
-            actualizarTabla();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-        }
-    }
-
-    private void buscar() {
-        try {
-            int id = Integer.parseInt(txtId.getText());
-            MascotaDTO m = controlador.buscarPorId(id);
-            txtNombre.setText(m.getNombre());
-            txtEspecie.setText(m.getEspecie());
-            txtRaza.setText(m.getRaza());
-            txtEdad.setText(String.valueOf(m.getEdad()));
-            comboPropietario.setSelectedItem(m.getPropietario().getId() + " - " + m.getPropietario().getNombre());
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+            MascotaDTO m = obtenerMascotaDesdeFormulario();
+            controlador.agregar(m);
+            Singleton.getInstancia().guardarDatos();
+            cargarTabla();
+            limpiar();
+            JOptionPane.showMessageDialog(this, "Mascota guardada.");
+        } catch (CampoVacioException | EntidadDuplicadaException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void editar() {
         try {
-            int id = Integer.parseInt(txtId.getText());
-            String nombre = txtNombre.getText();
-            String especie = txtEspecie.getText();
-            String raza = txtRaza.getText();
-            int edad = Integer.parseInt(txtEdad.getText());
-            PropietarioDTO propietario = obtenerPropietarioSeleccionado();
-
-            controlador.actualizarMascota(id, nombre, especie, raza, edad, propietario);
+            MascotaDTO m = obtenerMascotaDesdeFormulario();
+            controlador.actualizar(m);
+            Singleton.getInstancia().guardarDatos();
+            cargarTabla();
+            limpiar();
             JOptionPane.showMessageDialog(this, "Mascota actualizada.");
-            actualizarTabla();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+        } catch (CampoVacioException | EntidadNoEncontradaException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void eliminar() {
-        try {
-            int id = Integer.parseInt(txtId.getText());
-            controlador.eliminarMascota(id);
-            JOptionPane.showMessageDialog(this, "Mascota eliminada.");
-            actualizarTabla();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
+        int fila = tabla.getSelectedRow();
+        if (fila != -1) {
+            int id = Integer.parseInt(tabla.getValueAt(fila, 0).toString());
+            try {
+                controlador.eliminar(id);
+                Singleton.getInstancia().guardarDatos();
+                cargarTabla();
+                limpiar();
+                JOptionPane.showMessageDialog(this, "Mascota eliminada.");
+            } catch (EntidadNoEncontradaException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
-    private PropietarioDTO obtenerPropietarioSeleccionado() throws EntidadNoEncontradaException {
-        String seleccionado = (String) comboPropietario.getSelectedItem();
-        if (seleccionado == null || !seleccionado.contains("-")) {
-            throw new EntidadNoEncontradaException("Debe seleccionar un propietario válido.");
+    private void limpiar() {
+        txtId.setText("");
+        txtNombre.setText("");
+        txtEspecie.setText("");
+        txtRaza.setText("");
+        txtEdad.setText("");
+        comboPropietario.setSelectedIndex(-1);
+        tabla.clearSelection();
+    }
+
+    private MascotaDTO obtenerMascotaDesdeFormulario() throws CampoVacioException {
+        try {
+            int id = Integer.parseInt(txtId.getText().trim());
+            String nombre = txtNombre.getText().trim();
+            String especie = txtEspecie.getText().trim();
+            String raza = txtRaza.getText().trim();
+            int edad = Integer.parseInt(txtEdad.getText().trim());
+            PropietarioDTO propietario = (PropietarioDTO) comboPropietario.getSelectedItem();
+
+            return new MascotaDTO(id, nombre, especie, raza, edad, propietario);
+        } catch (NumberFormatException e) {
+            throw new CampoVacioException("ID y Edad deben ser números válidos.");
+        } catch (NullPointerException e) {
+            throw new CampoVacioException("Debe seleccionar un propietario.");
         }
-        int idPropietario = Integer.parseInt(seleccionado.split(" - ")[0].trim());
-        return Singleton.getInstance().getPropietarioDAO().buscarPorId(idPropietario);
+    }
+
+    private void cargarSeleccion() {
+        int fila = tabla.getSelectedRow();
+        if (fila != -1) {
+            txtId.setText(tabla.getValueAt(fila, 0).toString());
+            txtNombre.setText(tabla.getValueAt(fila, 1).toString());
+            txtEspecie.setText(tabla.getValueAt(fila, 2).toString());
+            txtRaza.setText(tabla.getValueAt(fila, 3).toString());
+            txtEdad.setText(tabla.getValueAt(fila, 4).toString());
+
+            String propietarioNombre = tabla.getValueAt(fila, 5).toString();
+            for (int i = 0; i < comboPropietario.getItemCount(); i++) {
+                if (comboPropietario.getItemAt(i).getNombre().equals(propietarioNombre)) {
+                    comboPropietario.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 }

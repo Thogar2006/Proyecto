@@ -7,19 +7,13 @@ package dao;
 import dto.MascotaDTO;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
+
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-/**
- *
- * @author bossstore
- */
 public class MascotaDAO {
     private final List<MascotaDTO> lista = new ArrayList<>();
 
-    // Agregar mascota
     public void agregar(MascotaDTO mascota) throws EntidadDuplicadaException {
         for (MascotaDTO m : lista) {
             if (m.getId() == mascota.getId()) {
@@ -29,44 +23,33 @@ public class MascotaDAO {
         lista.add(mascota);
     }
 
-    // Buscar por ID
-    public MascotaDTO buscarPorId(int id) throws EntidadNoEncontradaException {
-        return lista.stream()
-                .filter(m -> m.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new EntidadNoEncontradaException("Mascota con ID " + id + " no encontrada."));
-    }
-
-    // Buscar por nombre (opcional)
-    public List<MascotaDTO> buscarPorNombre(String nombre) {
-        List<MascotaDTO> resultados = new ArrayList<>();
-        for (MascotaDTO m : lista) {
-            if (m.getNombre().equalsIgnoreCase(nombre)) {
-                resultados.add(m);
-            }
-        }
-        return resultados;
-    }
-
-    // Actualizar
-    public void actualizar(MascotaDTO mascota) throws EntidadNoEncontradaException {
-        for (int i = 0; i < lista.size(); i++) {
-            if (lista.get(i).getId() == mascota.getId()) {
-                lista.set(i, mascota);
-                return;
-            }
-        }
-        throw new EntidadNoEncontradaException("Mascota con ID " + mascota.getId() + " no encontrada.");
-    }
-
-    // Eliminar
     public void eliminar(int id) throws EntidadNoEncontradaException {
-        MascotaDTO m = buscarPorId(id);
-        lista.remove(m);
+        MascotaDTO encontrada = buscarPorId(id);
+        lista.remove(encontrada);
     }
 
-    // Obtener todas
-    public List<MascotaDTO> obtenerTodas() {
-        return new ArrayList<>(lista);
+    public void actualizar(MascotaDTO mascota) throws EntidadNoEncontradaException {
+        MascotaDTO existente = buscarPorId(mascota.getId());
+        existente.setNombre(mascota.getNombre());
+        existente.setEspecie(mascota.getEspecie());
+        existente.setRaza(mascota.getRaza());
+        existente.setEdad(mascota.getEdad());
+        existente.setPropietario(mascota.getPropietario());
+    }
+
+    public MascotaDTO buscarPorId(int id) throws EntidadNoEncontradaException {
+        for (MascotaDTO m : lista) {
+            if (m.getId() == id) return m;
+        }
+        throw new EntidadNoEncontradaException("Mascota no encontrada.");
+    }
+
+    public List<MascotaDTO> obtenerTodos() {
+        return lista;
+    }
+
+    public void setLista(List<MascotaDTO> nuevaLista) {
+        lista.clear();
+        lista.addAll(nuevaLista);
     }
 }

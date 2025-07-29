@@ -7,61 +7,49 @@ package dao;
 import dto.PropietarioDTO;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
+
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author bossstore
- */
 public class PropietarioDAO {
     private final List<PropietarioDTO> lista = new ArrayList<>();
 
-    // Agregar un propietario nuevo
     public void agregar(PropietarioDTO propietario) throws EntidadDuplicadaException {
         for (PropietarioDTO p : lista) {
             if (p.getDocumento().equals(propietario.getDocumento())) {
-                throw new EntidadDuplicadaException("Ya existe un propietario con el documento: " + propietario.getDocumento());
+                throw new EntidadDuplicadaException("Ya existe un propietario con ese documento.");
             }
         }
         lista.add(propietario);
     }
 
-    // Buscar por ID
-    public PropietarioDTO buscarPorId(int id) throws EntidadNoEncontradaException {
-        return lista.stream()
-                .filter(p -> p.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new EntidadNoEncontradaException("Propietario con ID " + id + " no encontrado."));
-    }
-
-    // Buscar por documento
-    public PropietarioDTO buscarPorDocumento(String documento) throws EntidadNoEncontradaException {
-        return lista.stream()
-                .filter(p -> p.getDocumento().equals(documento))
-                .findFirst()
-                .orElseThrow(() -> new EntidadNoEncontradaException("Propietario con documento " + documento + " no encontrado."));
-    }
-
-    // Actualizar datos
-    public void actualizar(PropietarioDTO propietario) throws EntidadNoEncontradaException {
-        for (int i = 0; i < lista.size(); i++) {
-            if (lista.get(i).getId() == propietario.getId()) {
-                lista.set(i, propietario);
-                return;
-            }
-        }
-        throw new EntidadNoEncontradaException("Propietario con ID " + propietario.getId() + " no encontrado.");
-    }
-
-    // Eliminar por ID
     public void eliminar(int id) throws EntidadNoEncontradaException {
         PropietarioDTO encontrado = buscarPorId(id);
         lista.remove(encontrado);
     }
 
-    // Obtener todos
+    public void actualizar(PropietarioDTO propietario) throws EntidadNoEncontradaException {
+        PropietarioDTO existente = buscarPorId(propietario.getId());
+        existente.setNombre(propietario.getNombre());
+        existente.setDocumento(propietario.getDocumento());
+        existente.setTelefono(propietario.getTelefono());
+        existente.setCorreo(propietario.getCorreo());
+    }
+
+    public PropietarioDTO buscarPorId(int id) throws EntidadNoEncontradaException {
+        for (PropietarioDTO p : lista) {
+            if (p.getId() == id) return p;
+        }
+        throw new EntidadNoEncontradaException("Propietario no encontrado.");
+    }
+
     public List<PropietarioDTO> obtenerTodos() {
-        return new ArrayList<>(lista); // Copia de seguridad
+        return lista;
+    }
+
+    // Métodos para persistencia
+    public void setLista(List<PropietarioDTO> nuevaLista) {
+        lista.clear();
+        lista.addAll(nuevaLista);
     }
 }

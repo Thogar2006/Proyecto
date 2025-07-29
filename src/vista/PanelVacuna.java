@@ -7,184 +7,147 @@ package vista;
 import controlador.VacunaControlador;
 import dto.MascotaDTO;
 import dto.VacunaDTO;
-import excepciones.CampoVacioException;
-import excepciones.EntidadDuplicadaException;
-import excepciones.EntidadNoEncontradaException;
-import singleton.Singleton;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import persistencia.Singleton;
 
 public class PanelVacuna extends JPanel {
 
-    private final VacunaControlador vacunaControlador;
-    private final JComboBox<MascotaDTO> comboMascota;
-    private final JTextField txtId, txtTipo, txtDosis, txtFecha;
-    private final JTable tabla;
-    private final DefaultTableModel modelo;
+    private final VacunaControlador controlador = Singleton.getInstancia().getVacunaControlador();
+    private final JComboBox<MascotaDTO> comboMascota = new JComboBox<>();
+    private final JTextField txtId = new JTextField(5);
+    private final JTextField txtTipo = new JTextField(10);
+    private final JTextField txtDosis = new JTextField(10);
+    private final JTextField txtFecha = new JTextField(10);
+    private final DefaultTableModel modelo = new DefaultTableModel(new Object[]{"ID", "Mascota", "Tipo", "Dosis", "Fecha"}, 0);
+    private final JTable tabla = new JTable(modelo);
 
     public PanelVacuna() {
-        vacunaControlador = Singleton.getInstance().getVacunaControlador();
-
         setLayout(new BorderLayout());
 
-        // Panel de formulario
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel panelCampos = new JPanel(new GridLayout(6, 2));
+        panelCampos.add(new JLabel("ID:"));
+        panelCampos.add(txtId);
+        panelCampos.add(new JLabel("Mascota:"));
+        panelCampos.add(comboMascota);
+        panelCampos.add(new JLabel("Tipo:"));
+        panelCampos.add(txtTipo);
+        panelCampos.add(new JLabel("Dosis:"));
+        panelCampos.add(txtDosis);
+        panelCampos.add(new JLabel("Fecha Aplicación (YYYY-MM-DD):"));
+        panelCampos.add(txtFecha);
 
-        txtId = new JTextField();
-        comboMascota = new JComboBox<>();
-        txtTipo = new JTextField();
-        txtDosis = new JTextField();
-        txtFecha = new JTextField();
-
-        panelFormulario.add(new JLabel("ID:"));
-        panelFormulario.add(txtId);
-        panelFormulario.add(new JLabel("Mascota:"));
-        panelFormulario.add(comboMascota);
-        panelFormulario.add(new JLabel("Tipo Vacuna:"));
-        panelFormulario.add(txtTipo);
-        panelFormulario.add(new JLabel("Dosis:"));
-        panelFormulario.add(txtDosis);
-        panelFormulario.add(new JLabel("Fecha Aplicación (AAAA-MM-DD):"));
-        panelFormulario.add(txtFecha);
-
+        JPanel panelBotones = new JPanel();
         JButton btnGuardar = new JButton("Guardar");
-        JButton btnBuscar = new JButton("Buscar");
-        JButton btnEditar = new JButton("Editar");
+        JButton btnActualizar = new JButton("Actualizar");
         JButton btnEliminar = new JButton("Eliminar");
-        JButton btnLimpiar = new JButton("Limpiar");
-
-        JPanel panelBotones = new JPanel(new GridLayout(1, 5, 5, 5));
         panelBotones.add(btnGuardar);
-        panelBotones.add(btnBuscar);
-        panelBotones.add(btnEditar);
+        panelBotones.add(btnActualizar);
         panelBotones.add(btnEliminar);
-        panelBotones.add(btnLimpiar);
 
-        JPanel panelSuperior = new JPanel(new BorderLayout());
-        panelSuperior.add(panelFormulario, BorderLayout.CENTER);
-        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
-
-        add(panelSuperior, BorderLayout.NORTH);
-
-        // Tabla
-        modelo = new DefaultTableModel(new Object[]{"ID", "Mascota", "Tipo", "Dosis", "Fecha"}, 0);
-        tabla = new JTable(modelo);
-        JScrollPane scroll = new JScrollPane(tabla);
-        add(scroll, BorderLayout.CENTER);
+        add(panelCampos, BorderLayout.NORTH);
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
+        add(panelBotones, BorderLayout.SOUTH);
 
         cargarComboMascotas();
         cargarTabla();
 
-        // Acciones
         btnGuardar.addActionListener(e -> guardarVacuna());
-        btnBuscar.addActionListener(e -> buscarVacuna());
-        btnEditar.addActionListener(e -> editarVacuna());
+        btnActualizar.addActionListener(e -> actualizarVacuna());
         btnEliminar.addActionListener(e -> eliminarVacuna());
-        btnLimpiar.addActionListener(e -> limpiarCampos());
+
+        tabla.getSelectionModel().addListSelectionListener(e -> cargarDesdeTabla());
     }
 
     private void cargarComboMascotas() {
         comboMascota.removeAllItems();
-        List<MascotaDTO> mascotas = Singleton.getInstance().getMascotaControlador().obtenerTodas();
-        for (MascotaDTO m : mascotas) {
+        for (MascotaDTO m : Singleton.getInstancia().getMascotaControlador().obtenerTodos()) {
             comboMascota.addItem(m);
         }
     }
 
     private void cargarTabla() {
         modelo.setRowCount(0);
-        for (VacunaDTO v : vacunaControlador.obtenerTodas()) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (VacunaDTO v : controlador.obtenerTodos()) {
             modelo.addRow(new Object[]{
                 v.getId(),
                 v.getMascota().getNombre(),
                 v.getTipo(),
                 v.getDosis(),
-                v.getFechaAplicacion()
+                v.getFechaAplicacion().format(formatter)
             });
         }
     }
 
     private void guardarVacuna() {
         try {
-            int id = Integer.parseInt(txtId.getText());
+            int id = Integer.parseInt(txtId.getText().trim());
             MascotaDTO mascota = (MascotaDTO) comboMascota.getSelectedItem();
-            String tipo = txtTipo.getText();
-            String dosis = txtDosis.getText();
-            LocalDate fecha = LocalDate.parse(txtFecha.getText());
+            String tipo = txtTipo.getText().trim();
+            String dosis = txtDosis.getText().trim();
+            LocalDate fecha = LocalDate.parse(txtFecha.getText().trim());
 
-            vacunaControlador.agregarVacuna(id, mascota, tipo, dosis, fecha);
-            JOptionPane.showMessageDialog(this, "Vacuna registrada exitosamente.");
-            limpiarCampos();
+            VacunaDTO vacuna = new VacunaDTO(id, mascota, tipo, dosis, fecha);
+            controlador.agregar(vacuna);
+            JOptionPane.showMessageDialog(this, "Vacuna registrada.");
             cargarTabla();
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "ID debe ser numérico.");
-        } catch (CampoVacioException | EntidadDuplicadaException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al guardar: " + ex.getMessage());
         }
     }
 
-    private void buscarVacuna() {
+    private void actualizarVacuna() {
         try {
-            int id = Integer.parseInt(txtId.getText());
-            VacunaDTO v = vacunaControlador.buscarPorId(id);
-
-            comboMascota.setSelectedItem(v.getMascota());
-            txtTipo.setText(v.getTipo());
-            txtDosis.setText(v.getDosis());
-            txtFecha.setText(v.getFechaAplicacion().toString());
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "ID debe ser numérico.");
-        } catch (EntidadNoEncontradaException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
-        }
-    }
-
-    private void editarVacuna() {
-        try {
-            int id = Integer.parseInt(txtId.getText());
+            int id = Integer.parseInt(txtId.getText().trim());
             MascotaDTO mascota = (MascotaDTO) comboMascota.getSelectedItem();
-            String tipo = txtTipo.getText();
-            String dosis = txtDosis.getText();
-            LocalDate fecha = LocalDate.parse(txtFecha.getText());
+            String tipo = txtTipo.getText().trim();
+            String dosis = txtDosis.getText().trim();
+            LocalDate fecha = LocalDate.parse(txtFecha.getText().trim());
 
-            vacunaControlador.actualizarVacuna(id, mascota, tipo, dosis, fecha);
+            VacunaDTO vacuna = new VacunaDTO(id, mascota, tipo, dosis, fecha);
+            controlador.actualizar(vacuna);
             JOptionPane.showMessageDialog(this, "Vacuna actualizada.");
-            limpiarCampos();
             cargarTabla();
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "ID debe ser numérico.");
-        } catch (CampoVacioException | EntidadNoEncontradaException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar: " + ex.getMessage());
         }
     }
 
     private void eliminarVacuna() {
         try {
-            int id = Integer.parseInt(txtId.getText());
-            vacunaControlador.eliminarVacuna(id);
+            int fila = tabla.getSelectedRow();
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione una fila.");
+                return;
+            }
+            int id = (int) modelo.getValueAt(fila, 0);
+            controlador.eliminar(id);
             JOptionPane.showMessageDialog(this, "Vacuna eliminada.");
-            limpiarCampos();
             cargarTabla();
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "ID debe ser numérico.");
-        } catch (EntidadNoEncontradaException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al eliminar: " + ex.getMessage());
         }
     }
 
-    private void limpiarCampos() {
-        txtId.setText("");
-        txtTipo.setText("");
-        txtDosis.setText("");
-        txtFecha.setText("");
-        comboMascota.setSelectedIndex(0);
+    private void cargarDesdeTabla() {
+        int fila = tabla.getSelectedRow();
+        if (fila != -1) {
+            txtId.setText(modelo.getValueAt(fila, 0).toString());
+            String nombreMascota = modelo.getValueAt(fila, 1).toString();
+            for (int i = 0; i < comboMascota.getItemCount(); i++) {
+                if (comboMascota.getItemAt(i).getNombre().equals(nombreMascota)) {
+                    comboMascota.setSelectedIndex(i);
+                    break;
+                }
+            }
+            txtTipo.setText(modelo.getValueAt(fila, 2).toString());
+            txtDosis.setText(modelo.getValueAt(fila, 3).toString());
+            txtFecha.setText(modelo.getValueAt(fila, 4).toString());
+        }
     }
 }

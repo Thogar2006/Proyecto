@@ -6,69 +6,41 @@ package controlador;
 
 import dao.ConsultaDAO;
 import dto.ConsultaDTO;
-import dto.MascotaDTO;
-import dto.PropietarioDTO;
-import dto.VeterinarioDTO;
 import excepciones.CampoVacioException;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
-/**
- *
- * @author bossstore
- */
 public class ConsultaControlador {
-    private final ConsultaDAO consultaDAO;
+    private final ConsultaDAO dao;
 
-    public ConsultaControlador(ConsultaDAO consultaDAO) {
-        this.consultaDAO = consultaDAO;
+    public ConsultaControlador(ConsultaDAO dao) {
+        this.dao = dao;
     }
 
-    public void agregarConsulta(int id, MascotaDTO mascota, PropietarioDTO propietario,
-                                VeterinarioDTO veterinario, LocalDateTime fechaHora,
-                                String diagnostico, String tratamiento)
-            throws CampoVacioException, EntidadDuplicadaException {
-
-        validarCampos(mascota, propietario, veterinario, fechaHora, diagnostico, tratamiento);
-
-        ConsultaDTO consulta = new ConsultaDTO(id, mascota, propietario, veterinario,
-                fechaHora, diagnostico, tratamiento);
-        consultaDAO.agregar(consulta);
+    public void agregar(ConsultaDTO consulta) throws CampoVacioException, EntidadDuplicadaException {
+        validar(consulta);
+        dao.agregar(consulta);
     }
 
-    public ConsultaDTO buscarPorId(int id) throws EntidadNoEncontradaException {
-        return consultaDAO.buscarPorId(id);
+    public void actualizar(ConsultaDTO consulta) throws CampoVacioException, EntidadNoEncontradaException {
+        validar(consulta);
+        dao.actualizar(consulta);
     }
 
-    public void actualizarConsulta(int id, MascotaDTO mascota, PropietarioDTO propietario,
-                                   VeterinarioDTO veterinario, LocalDateTime fechaHora,
-                                   String diagnostico, String tratamiento)
-            throws CampoVacioException, EntidadNoEncontradaException {
-
-        validarCampos(mascota, propietario, veterinario, fechaHora, diagnostico, tratamiento);
-
-        ConsultaDTO consulta = new ConsultaDTO(id, mascota, propietario, veterinario,
-                fechaHora, diagnostico, tratamiento);
-        consultaDAO.actualizar(consulta);
+    public void eliminar(int id) throws EntidadNoEncontradaException {
+        dao.eliminar(id);
     }
 
-    public void eliminarConsulta(int id) throws EntidadNoEncontradaException {
-        consultaDAO.eliminar(id);
+    public List<ConsultaDTO> obtenerTodos() {
+        return dao.obtenerTodos();
     }
 
-    public List<ConsultaDTO> obtenerTodas() {
-        return consultaDAO.obtenerTodas();
-    }
-
-    private void validarCampos(MascotaDTO mascota, PropietarioDTO propietario, VeterinarioDTO veterinario,
-                               LocalDateTime fechaHora, String diagnostico, String tratamiento)
-            throws CampoVacioException {
-
-        if (mascota == null || propietario == null || veterinario == null || fechaHora == null ||
-            diagnostico.isBlank() || tratamiento.isBlank()) {
+    private void validar(ConsultaDTO consulta) throws CampoVacioException {
+        if (consulta.getMascota() == null || consulta.getPropietario() == null || consulta.getVeterinario() == null ||
+            consulta.getFechaHora() == null || consulta.getDiagnostico().isEmpty() || consulta.getTratamiento().isEmpty()) {
             throw new CampoVacioException("Todos los campos de la consulta deben estar completos.");
         }
     }
-}  
+}

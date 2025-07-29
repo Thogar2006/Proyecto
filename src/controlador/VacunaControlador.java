@@ -5,59 +5,43 @@
 package controlador;
 
 import dao.VacunaDAO;
-import dto.MascotaDTO;
 import dto.VacunaDTO;
 import excepciones.CampoVacioException;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
-import java.time.LocalDate;
+
 import java.util.List;
 
-/**
- *
- * @author bossstore
- */
 public class VacunaControlador {
-    private final VacunaDAO vacunaDAO;
+    private final VacunaDAO dao;
 
-    public VacunaControlador(VacunaDAO vacunaDAO) {
-        this.vacunaDAO = vacunaDAO;
+    public VacunaControlador(VacunaDAO dao) {
+        this.dao = dao;
     }
 
-    public void agregarVacuna(int id, MascotaDTO mascota, String tipo, String dosis, LocalDate fecha)
-            throws CampoVacioException, EntidadDuplicadaException {
-
-        validarCampos(mascota, tipo, dosis, fecha);
-
-        VacunaDTO vacuna = new VacunaDTO(id, mascota, tipo, dosis, fecha);
-        vacunaDAO.agregar(vacuna);
+    public void agregar(VacunaDTO vacuna) throws CampoVacioException, EntidadDuplicadaException {
+        validar(vacuna);
+        dao.agregar(vacuna);
     }
 
-    public VacunaDTO buscarPorId(int id) throws EntidadNoEncontradaException {
-        return vacunaDAO.buscarPorId(id);
+    public void actualizar(VacunaDTO vacuna) throws CampoVacioException, EntidadNoEncontradaException {
+        validar(vacuna);
+        dao.actualizar(vacuna);
     }
 
-    public void actualizarVacuna(int id, MascotaDTO mascota, String tipo, String dosis, LocalDate fecha)
-            throws CampoVacioException, EntidadNoEncontradaException {
-
-        validarCampos(mascota, tipo, dosis, fecha);
-
-        VacunaDTO vacuna = new VacunaDTO(id, mascota, tipo, dosis, fecha);
-        vacunaDAO.actualizar(vacuna);
+    public void eliminar(int id) throws EntidadNoEncontradaException {
+        dao.eliminar(id);
     }
 
-    public void eliminarVacuna(int id) throws EntidadNoEncontradaException {
-        vacunaDAO.eliminar(id);
+    public List<VacunaDTO> obtenerTodos() {
+        return dao.obtenerTodos();
     }
 
-    public List<VacunaDTO> obtenerTodas() {
-        return vacunaDAO.obtenerTodas();
-    }
-
-    private void validarCampos(MascotaDTO mascota, String tipo, String dosis, LocalDate fecha)
-            throws CampoVacioException {
-
-        if (mascota == null || tipo.isBlank() || dosis.isBlank() || fecha == null) {
+    private void validar(VacunaDTO vacuna) throws CampoVacioException {
+        if (vacuna.getMascota() == null ||
+            vacuna.getTipo() == null || vacuna.getTipo().isEmpty() ||
+            vacuna.getDosis() == null || vacuna.getDosis().isEmpty() ||
+            vacuna.getFechaAplicacion() == null) {
             throw new CampoVacioException("Todos los campos de la vacuna deben estar completos.");
         }
     }

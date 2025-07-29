@@ -6,135 +6,157 @@ package vista;
 
 import controlador.PropietarioControlador;
 import dto.PropietarioDTO;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.table.DefaultTableModel;
-import singleton.Singleton;
+import excepciones.CampoVacioException;
+import excepciones.EntidadDuplicadaException;
+import excepciones.EntidadNoEncontradaException;
+import persistencia.Singleton;
 
-/**
- *
- * @author bossstore
- */
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.util.List;
+
 public class PanelPropietario extends JPanel {
 
-    private JTextField txtId, txtNombre, txtDocumento, txtCorreo, txtTelefono;
-    private JTable tabla;
-    private DefaultTableModel modeloTabla;
+    private final JTextField txtId = new JTextField(5);
+    private final JTextField txtNombre = new JTextField(15);
+    private final JTextField txtDocumento = new JTextField(15);
+    private final JTextField txtTelefono = new JTextField(15);
+    private final JTextField txtCorreo = new JTextField(15);
 
-    private final PropietarioControlador controlador = Singleton.getInstance().getPropietarioControlador();
+    private final DefaultTableModel modeloTabla = new DefaultTableModel(new String[]{"ID", "Nombre", "Documento", "Teléfono", "Correo"}, 0);
+    private final JTable tabla = new JTable(modeloTabla);
+
+    private final PropietarioControlador controlador = Singleton.getInstancia().getPropietarioControlador();
 
     public PanelPropietario() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
 
-        // Panel de formulario
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 5, 5));
-
+        // === PANEL FORMULARIO ===
+        JPanel panelFormulario = new JPanel(new GridLayout(5, 2, 5, 5));
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos del Propietario"));
-
-        txtId = new JTextField();
-        txtNombre = new JTextField();
-        txtDocumento = new JTextField();
-        txtCorreo = new JTextField();
-        txtTelefono = new JTextField();
 
         panelFormulario.add(new JLabel("ID:"));
         panelFormulario.add(txtId);
+
         panelFormulario.add(new JLabel("Nombre:"));
         panelFormulario.add(txtNombre);
+
         panelFormulario.add(new JLabel("Documento:"));
         panelFormulario.add(txtDocumento);
-        panelFormulario.add(new JLabel("Correo:"));
-        panelFormulario.add(txtCorreo);
+
         panelFormulario.add(new JLabel("Teléfono:"));
         panelFormulario.add(txtTelefono);
 
+        panelFormulario.add(new JLabel("Correo:"));
+        panelFormulario.add(txtCorreo);
+
+        // === PANEL BOTONES ===
         JButton btnGuardar = new JButton("Guardar");
-        JButton btnBuscar = new JButton("Buscar");
-        JButton btnEditar = new JButton("Editar");
         JButton btnEliminar = new JButton("Eliminar");
         JButton btnLimpiar = new JButton("Limpiar");
 
-        panelFormulario.add(btnGuardar);
-        panelFormulario.add(btnBuscar);
-        panelFormulario.add(btnEditar);
-        panelFormulario.add(btnEliminar);
-        panelFormulario.add(btnLimpiar);
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnLimpiar);
 
-        add(panelFormulario, BorderLayout.NORTH);
+        // Unir formulario + botones
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        panelSuperior.add(panelFormulario, BorderLayout.CENTER);
+        panelSuperior.add(panelBotones, BorderLayout.SOUTH);
 
-        // Tabla
-        modeloTabla = new DefaultTableModel(new String[]{"ID", "Nombre", "Documento", "Correo", "Teléfono"}, 0);
-        tabla = new JTable(modeloTabla);
-        JScrollPane scrollPane = new JScrollPane(tabla);
-        add(scrollPane, BorderLayout.CENTER);
+        // === TABLA ===
+        JScrollPane scrollTabla = new JScrollPane(tabla);
+        scrollTabla.setBorder(BorderFactory.createTitledBorder("Lista de Propietarios"));
 
-        // Eventos
+        // === AGREGAR A PANEL PRINCIPAL ===
+        add(panelSuperior, BorderLayout.NORTH);
+        add(scrollTabla, BorderLayout.CENTER);
+
+        // === EVENTOS ===
         btnGuardar.addActionListener(e -> guardar());
-        btnBuscar.addActionListener(e -> buscar());
-        btnEditar.addActionListener(e -> editar());
         btnEliminar.addActionListener(e -> eliminar());
         btnLimpiar.addActionListener(e -> limpiar());
 
-        actualizarTabla();
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) cargarSeleccionado();
+        });
+
+        cargarTabla();
     }
 
     private void guardar() {
         try {
-            int id = Integer.parseInt(txtId.getText());
-            controlador.agregarPropietario(id, txtNombre.getText(), txtDocumento.getText(),
-                    txtCorreo.getText(), txtTelefono.getText());
-            JOptionPane.showMessageDialog(this, "Propietario guardado correctamente.");
-            limpiar();
-            actualizarTabla();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+            int id = Integer.parseInt(txtId.getText().trim());
+            String nombre = txtNombre.getText().trim();
+            String documento = txtDocumento.getText().trim();
+            String telefono = txtTelefono.getText().trim();
+            String correo = txtCorreo.getText().trim();
 
-    private void buscar() {
-        try {
-            int id = Integer.parseInt(txtId.getText());
-            PropietarioDTO p = controlador.buscarPorId(id);
-            txtNombre.setText(p.getNombre());
-            txtDocumento.setText(p.getDocumento());
-            txtCorreo.setText(p.getCorreo());
-            txtTelefono.setText(p.getTelefono());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+            PropietarioDTO p = new PropietarioDTO(id, nombre, documento, telefono, correo);
 
-    private void editar() {
-        try {
-            int id = Integer.parseInt(txtId.getText());
-            controlador.actualizarPropietario(id, txtNombre.getText(), txtDocumento.getText(),
-                    txtCorreo.getText(), txtTelefono.getText());
-            JOptionPane.showMessageDialog(this, "Propietario actualizado correctamente.");
+            boolean existe = controlador.obtenerTodos().stream().anyMatch(prop -> prop.getId() == id);
+            if (existe) {
+                controlador.actualizar(p);
+                JOptionPane.showMessageDialog(this, "Propietario actualizado correctamente.");
+            } else {
+                controlador.agregar(p);
+                JOptionPane.showMessageDialog(this, "Propietario agregado correctamente.");
+            }
+
+            Singleton.getInstancia().guardarDatos();
             limpiar();
-            actualizarTabla();
-        } catch (Exception ex) {
+            cargarTabla();
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "El ID debe ser numérico.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (CampoVacioException | EntidadDuplicadaException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void eliminar() {
         try {
-            int id = Integer.parseInt(txtId.getText());
-            controlador.eliminarPropietario(id);
+            int fila = tabla.getSelectedRow();
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione un propietario a eliminar.");
+                return;
+            }
+
+            int id = Integer.parseInt(tabla.getValueAt(fila, 0).toString());
+            controlador.eliminar(id);
+            Singleton.getInstancia().guardarDatos();
+
             JOptionPane.showMessageDialog(this, "Propietario eliminado.");
             limpiar();
-            actualizarTabla();
-        } catch (Exception ex) {
+            cargarTabla();
+
+        } catch (EntidadNoEncontradaException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarSeleccionado() {
+        int fila = tabla.getSelectedRow();
+        if (fila != -1) {
+            txtId.setText(tabla.getValueAt(fila, 0).toString());
+            txtNombre.setText(tabla.getValueAt(fila, 1).toString());
+            txtDocumento.setText(tabla.getValueAt(fila, 2).toString());
+            txtTelefono.setText(tabla.getValueAt(fila, 3).toString());
+            txtCorreo.setText(tabla.getValueAt(fila, 4).toString());
+        }
+    }
+
+    private void cargarTabla() {
+        modeloTabla.setRowCount(0);
+        List<PropietarioDTO> lista = controlador.obtenerTodos();
+        for (PropietarioDTO p : lista) {
+            modeloTabla.addRow(new Object[]{
+                p.getId(), p.getNombre(), p.getDocumento(), p.getTelefono(), p.getCorreo()
+            });
         }
     }
 
@@ -142,17 +164,9 @@ public class PanelPropietario extends JPanel {
         txtId.setText("");
         txtNombre.setText("");
         txtDocumento.setText("");
-        txtCorreo.setText("");
         txtTelefono.setText("");
-    }
-
-    private void actualizarTabla() {
-        modeloTabla.setRowCount(0);
-        List<PropietarioDTO> propietarios = controlador.obtenerTodos();
-        for (PropietarioDTO p : propietarios) {
-            modeloTabla.addRow(new Object[]{
-                    p.getId(), p.getNombre(), p.getDocumento(), p.getCorreo(), p.getTelefono()
-            });
-        }
+        txtCorreo.setText("");
+        tabla.clearSelection();
     }
 }
+

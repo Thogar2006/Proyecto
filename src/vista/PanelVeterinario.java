@@ -4,90 +4,172 @@
  */
 package vista;
 
-
 import controlador.VeterinarioControlador;
 import dto.VeterinarioDTO;
 import excepciones.CampoVacioException;
 import excepciones.EntidadDuplicadaException;
 import excepciones.EntidadNoEncontradaException;
-import singleton.Singleton;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import persistencia.Singleton;
 
 public class PanelVeterinario extends JPanel {
-
-    private final JTextField txtId = new JTextField(10);
+    private final JTextField txtId = new JTextField(15);
     private final JTextField txtNombre = new JTextField(15);
     private final JTextField txtDocumento = new JTextField(15);
     private final JTextField txtTelefono = new JTextField(15);
     private final JTextField txtCorreo = new JTextField(15);
     private final JTextField txtEspecialidad = new JTextField(15);
-
-    private final JButton btnGuardar = new JButton("Guardar");
-    private final JButton btnBuscar = new JButton("Buscar");
-    private final JButton btnEditar = new JButton("Editar");
-    private final JButton btnEliminar = new JButton("Eliminar");
-
-    private final JTable tabla;
-    private final DefaultTableModel modeloTabla;
+    private final DefaultTableModel modeloTabla = new DefaultTableModel();
+    private final JTable tabla = new JTable(modeloTabla);
 
     private final VeterinarioControlador controlador;
 
     public PanelVeterinario() {
-        controlador = new VeterinarioControlador(Singleton.getInstance().getVeterinarioDAO());
+        this.controlador = Singleton.getInstancia().getVeterinarioControlador();
         setLayout(new BorderLayout());
 
-        // --- Formulario ---
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 5, 5));
+        // Panel de formulario
+        JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos del Veterinario"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        panelFormulario.add(new JLabel("ID:"));
-        panelFormulario.add(txtId);
-        panelFormulario.add(new JLabel("Nombre:"));
-        panelFormulario.add(txtNombre);
-        panelFormulario.add(new JLabel("Documento:"));
-        panelFormulario.add(txtDocumento);
-        panelFormulario.add(new JLabel("Teléfono:"));
-        panelFormulario.add(txtTelefono);
-        panelFormulario.add(new JLabel("Correo:"));
-        panelFormulario.add(txtCorreo);
-        panelFormulario.add(new JLabel("Especialidad:"));
-        panelFormulario.add(txtEspecialidad);
+        // Fila 1
+        gbc.gridx = 0; gbc.gridy = 0;
+        panelFormulario.add(new JLabel("ID:"), gbc);
+        gbc.gridx = 1;
+        panelFormulario.add(txtId, gbc);
+
+        // Fila 2
+        gbc.gridx = 0; gbc.gridy++;
+        panelFormulario.add(new JLabel("Nombre:"), gbc);
+        gbc.gridx = 1;
+        panelFormulario.add(txtNombre, gbc);
+
+        // Fila 3
+        gbc.gridx = 0; gbc.gridy++;
+        panelFormulario.add(new JLabel("Documento:"), gbc);
+        gbc.gridx = 1;
+        panelFormulario.add(txtDocumento, gbc);
+
+        // Fila 4
+        gbc.gridx = 0; gbc.gridy++;
+        panelFormulario.add(new JLabel("Teléfono:"), gbc);
+        gbc.gridx = 1;
+        panelFormulario.add(txtTelefono, gbc);
+
+        // Fila 5
+        gbc.gridx = 0; gbc.gridy++;
+        panelFormulario.add(new JLabel("Correo:"), gbc);
+        gbc.gridx = 1;
+        panelFormulario.add(txtCorreo, gbc);
+
+        // Fila 6
+        gbc.gridx = 0; gbc.gridy++;
+        panelFormulario.add(new JLabel("Especialidad:"), gbc);
+        gbc.gridx = 1;
+        panelFormulario.add(txtEspecialidad, gbc);
+
+        // Fila 7 (botones)
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        JButton btnAgregar = new JButton("Agregar");
+        JButton btnActualizar = new JButton("Actualizar");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnLimpiar = new JButton("Limpiar");
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnActualizar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnLimpiar);
+
+        gbc.gridx = 0; gbc.gridy++;
+        gbc.gridwidth = 2;
+        panelFormulario.add(panelBotones, gbc);
 
         add(panelFormulario, BorderLayout.NORTH);
 
-        // --- Tabla ---
-        modeloTabla = new DefaultTableModel(new String[]{"ID", "Nombre", "Documento", "Teléfono", "Correo", "Especialidad"}, 0);
-        tabla = new JTable(modeloTabla);
-        JScrollPane scrollTabla = new JScrollPane(tabla);
-        scrollTabla.setBorder(BorderFactory.createTitledBorder("Lista de Veterinarios"));
+        // Tabla
+        modeloTabla.addColumn("ID");
+        modeloTabla.addColumn("Nombre");
+        modeloTabla.addColumn("Documento");
+        modeloTabla.addColumn("Teléfono");
+        modeloTabla.addColumn("Correo");
+        modeloTabla.addColumn("Especialidad");
 
-        add(scrollTabla, BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(tabla);
+        add(scroll, BorderLayout.CENTER);
 
-        // --- Botones ---
-        JPanel panelBotones = new JPanel(new FlowLayout());
-        panelBotones.add(btnGuardar);
-        panelBotones.add(btnBuscar);
-        panelBotones.add(btnEditar);
-        panelBotones.add(btnEliminar);
-
-        add(panelBotones, BorderLayout.SOUTH);
-
-        // --- Eventos ---
-        btnGuardar.addActionListener(e -> guardar());
-        btnBuscar.addActionListener(e -> buscar());
-        btnEditar.addActionListener(e -> editar());
-        btnEliminar.addActionListener(e -> eliminar());
+        // Listeners
+        btnAgregar.addActionListener(e -> agregarVeterinario());
+        btnActualizar.addActionListener(e -> actualizarVeterinario());
+        btnEliminar.addActionListener(e -> eliminarVeterinario());
+        btnLimpiar.addActionListener(e -> limpiarCampos());
+        tabla.getSelectionModel().addListSelectionListener(e -> cargarSeleccionado());
 
         actualizarTabla();
     }
 
+    private void agregarVeterinario() {
+        try {
+            VeterinarioDTO v = obtenerVeterinarioDesdeCampos();
+            controlador.agregar(v);
+            Singleton.getInstancia().guardarDatos();
+            actualizarTabla();
+            limpiarCampos();
+        } catch (CampoVacioException | EntidadDuplicadaException ex) {
+            mostrarError(ex.getMessage());
+        } catch (NumberFormatException ex) {
+            mostrarError("ID debe ser un número válido.");
+        }
+    }
+
+    private void actualizarVeterinario() {
+        try {
+            VeterinarioDTO v = obtenerVeterinarioDesdeCampos();
+            controlador.actualizar(v);
+            Singleton.getInstancia().guardarDatos();
+            actualizarTabla();
+            limpiarCampos();
+        } catch (CampoVacioException | EntidadNoEncontradaException ex) {
+            mostrarError(ex.getMessage());
+        } catch (NumberFormatException ex) {
+            mostrarError("ID debe ser un número válido.");
+        }
+    }
+
+    private void eliminarVeterinario() {
+        try {
+            int id = Integer.parseInt(txtId.getText());
+            controlador.eliminar(id);
+            Singleton.getInstancia().guardarDatos();
+            actualizarTabla();
+            limpiarCampos();
+        } catch (EntidadNoEncontradaException ex) {
+            mostrarError(ex.getMessage());
+        } catch (NumberFormatException ex) {
+            mostrarError("ID debe ser un número válido.");
+        }
+    }
+
+    private VeterinarioDTO obtenerVeterinarioDesdeCampos() {
+        int id = Integer.parseInt(txtId.getText());
+        return new VeterinarioDTO(
+                id,
+                txtNombre.getText().trim(),
+                txtDocumento.getText().trim(),
+                txtTelefono.getText().trim(),
+                txtCorreo.getText().trim(),
+                txtEspecialidad.getText().trim()
+        );
+    }
+
     private void actualizarTabla() {
-        modeloTabla.setRowCount(0); // limpiar
-        List<VeterinarioDTO> lista = Singleton.getInstance().getVeterinarioDAO().obtenerTodos();
+        modeloTabla.setRowCount(0);
+        List<VeterinarioDTO> lista = controlador.obtenerTodos();
         for (VeterinarioDTO v : lista) {
             modeloTabla.addRow(new Object[]{
                     v.getId(),
@@ -100,63 +182,29 @@ public class PanelVeterinario extends JPanel {
         }
     }
 
-    private void guardar() {
-        try {
-            controlador.agregarVeterinario(
-                    Integer.parseInt(txtId.getText()),
-                    txtNombre.getText(),
-                    txtDocumento.getText(),
-                    txtTelefono.getText(),
-                    txtCorreo.getText(),
-                    txtEspecialidad.getText()
-            );
-            JOptionPane.showMessageDialog(this, "Veterinario guardado correctamente.");
-            actualizarTabla();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "ID inválido.");
-        } catch (CampoVacioException | EntidadDuplicadaException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
+    private void cargarSeleccionado() {
+        int fila = tabla.getSelectedRow();
+        if (fila >= 0) {
+            txtId.setText(modeloTabla.getValueAt(fila, 0).toString());
+            txtNombre.setText(modeloTabla.getValueAt(fila, 1).toString());
+            txtDocumento.setText(modeloTabla.getValueAt(fila, 2).toString());
+            txtTelefono.setText(modeloTabla.getValueAt(fila, 3).toString());
+            txtCorreo.setText(modeloTabla.getValueAt(fila, 4).toString());
+            txtEspecialidad.setText(modeloTabla.getValueAt(fila, 5).toString());
         }
     }
 
-    private void buscar() {
-        try {
-            int id = Integer.parseInt(txtId.getText());
-            VeterinarioDTO v = controlador.buscarPorId(id);
-            txtNombre.setText(v.getNombre());
-            txtDocumento.setText(v.getDocumento());
-            txtTelefono.setText(v.getTelefono());
-            txtCorreo.setText(v.getCorreo());
-            txtEspecialidad.setText(v.getEspecialidad());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
-        }
+    private void limpiarCampos() {
+        txtId.setText("");
+        txtNombre.setText("");
+        txtDocumento.setText("");
+        txtTelefono.setText("");
+        txtCorreo.setText("");
+        txtEspecialidad.setText("");
+        tabla.clearSelection();
     }
 
-    private void editar() {
-        try {
-            controlador.actualizarVeterinario(
-                    Integer.parseInt(txtId.getText()),
-                    txtNombre.getText(),
-                    txtDocumento.getText(),
-                    txtTelefono.getText(),
-                    txtCorreo.getText(),
-                    txtEspecialidad.getText()
-            );
-            JOptionPane.showMessageDialog(this, "Veterinario actualizado.");
-            actualizarTabla();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
-        }
-    }
-
-    private void eliminar() {
-        try {
-            controlador.eliminarVeterinario(Integer.parseInt(txtId.getText()));
-            JOptionPane.showMessageDialog(this, "Veterinario eliminado.");
-            actualizarTabla();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
-        }
+    private void mostrarError(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
     }
 }

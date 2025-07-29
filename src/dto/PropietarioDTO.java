@@ -4,6 +4,8 @@
  */
 package dto;
 
+import java.io.Serializable;
+
 /**
  *
  * @author bossstore
@@ -16,7 +18,6 @@ public class PropietarioDTO extends PersonaDTO {
 
     @Override
     public String toString() {
-        return nombre + " (ID: " + id + ")";
+        return nombre + " (" + documento + ")";
     }
 }
-

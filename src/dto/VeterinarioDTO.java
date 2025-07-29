@@ -4,11 +4,15 @@
  */
 package dto;
 
+
 /**
  *
  * @author bossstore
  */
+
+
 public class VeterinarioDTO extends PersonaDTO {
+
     private String especialidad;
 
     public VeterinarioDTO(int id, String nombre, String documento, String telefono, String correo, String especialidad) {
@@ -16,11 +20,16 @@ public class VeterinarioDTO extends PersonaDTO {
         this.especialidad = especialidad;
     }
 
-    public String getEspecialidad() { return especialidad; }
-    public void setEspecialidad(String especialidad) { this.especialidad = especialidad; }
+    public String getEspecialidad() {
+        return especialidad;
+    }
+
+    public void setEspecialidad(String especialidad) {
+        this.especialidad = especialidad;
+    }
 
     @Override
     public String toString() {
-        return nombre + " (ID: " + id + ")";
+        return nombre + " (" + especialidad + ")";
     }
 }

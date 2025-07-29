@@ -4,13 +4,17 @@
  */
 package dto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  *
  * @author bossstore
  */
-public class CitaDTO {
+
+public class CitaDTO implements Serializable {
+
+
     private int id;
     private MascotaDTO mascota;
     private PropietarioDTO propietario;
@@ -27,22 +31,17 @@ public class CitaDTO {
         this.motivo = motivo;
     }
 
-    // Getters y Setters
     public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
     public MascotaDTO getMascota() { return mascota; }
-    public void setMascota(MascotaDTO mascota) { this.mascota = mascota; }
-
     public PropietarioDTO getPropietario() { return propietario; }
-    public void setPropietario(PropietarioDTO propietario) { this.propietario = propietario; }
-
     public VeterinarioDTO getVeterinario() { return veterinario; }
-    public void setVeterinario(VeterinarioDTO veterinario) { this.veterinario = veterinario; }
-
     public LocalDateTime getFechaHora() { return fechaHora; }
-    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
-
     public String getMotivo() { return motivo; }
+
+    public void setId(int id) { this.id = id; }
+    public void setMascota(MascotaDTO mascota) { this.mascota = mascota; }
+    public void setPropietario(PropietarioDTO propietario) { this.propietario = propietario; }
+    public void setVeterinario(VeterinarioDTO veterinario) { this.veterinario = veterinario; }
+    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
     public void setMotivo(String motivo) { this.motivo = motivo; }
 }
