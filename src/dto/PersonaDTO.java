@@ -26,15 +26,45 @@ public abstract class PersonaDTO implements Serializable {
     }
 
     // Getters y setters
-    public int getId() { return id; }
-    public String getNombre() { return nombre; }
-    public String getDocumento() { return documento; }
-    public String getTelefono() { return telefono; }
-    public String getCorreo() { return correo; }
 
-    public void setId(int id) { this.id = id; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public void setDocumento(String documento) { this.documento = documento; }
-    public void setTelefono(String telefono) { this.telefono = telefono; }
-    public void setCorreo(String correo) { this.correo = correo; }
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public void setDocumento(String documento) {
+        this.documento = documento;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+    
 }

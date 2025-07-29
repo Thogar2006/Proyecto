@@ -20,21 +20,21 @@ public class Singleton {
     private final MascotaDAO mascotaDAO;
     private final CitaDAO citaDAO;
     private final ConsultaDAO consultaDAO;
-    private final VacunaDAO vacunaDAO; // NUEVO
+    private final VacunaDAO vacunaDAO; 
 
     private final PropietarioControlador propietarioControlador;
     private final VeterinarioControlador veterinarioControlador;
     private final MascotaControlador mascotaControlador;
     private final CitaControlador citaControlador;
     private final ConsultaControlador consultaControlador;
-    private final VacunaControlador vacunaControlador; // NUEVO
+    private final VacunaControlador vacunaControlador; 
 
     private final String ARCHIVO_PROPIETARIOS = "propietarios.dat";
     private final String ARCHIVO_VETERINARIOS = "veterinarios.dat";
     private final String ARCHIVO_MASCOTAS = "mascotas.dat";
     private final String ARCHIVO_CITAS = "citas.dat";
     private final String ARCHIVO_CONSULTAS = "consultas.dat";
-    private final String ARCHIVO_VACUNAS = "vacunas.dat"; // NUEVO
+    private final String ARCHIVO_VACUNAS = "vacunas.dat"; 
 
     private Singleton() {
         this.propietarioDAO = new PropietarioDAO();
@@ -42,14 +42,14 @@ public class Singleton {
         this.mascotaDAO = new MascotaDAO();
         this.citaDAO = new CitaDAO();
         this.consultaDAO = new ConsultaDAO();
-        this.vacunaDAO = new VacunaDAO(); // NUEVO
+        this.vacunaDAO = new VacunaDAO(); 
 
         this.propietarioControlador = new PropietarioControlador(propietarioDAO);
         this.veterinarioControlador = new VeterinarioControlador(veterinarioDAO);
         this.mascotaControlador = new MascotaControlador(mascotaDAO);
         this.citaControlador = new CitaControlador(citaDAO);
         this.consultaControlador = new ConsultaControlador(consultaDAO);
-        this.vacunaControlador = new VacunaControlador(vacunaDAO); // NUEVO
+        this.vacunaControlador = new VacunaControlador(vacunaDAO); 
 
         cargarDatos();
     }
@@ -92,7 +92,7 @@ public class Singleton {
             Serializador.guardar(ARCHIVO_MASCOTAS, mascotaDAO.obtenerTodos());
             Serializador.guardar(ARCHIVO_CITAS, citaDAO.obtenerTodos());
             Serializador.guardar(ARCHIVO_CONSULTAS, consultaDAO.obtenerTodos());
-            Serializador.guardar(ARCHIVO_VACUNAS, vacunaDAO.obtenerTodos()); // NUEVO
+            Serializador.guardar(ARCHIVO_VACUNAS, vacunaDAO.obtenerTodos()); 
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -117,7 +117,7 @@ public class Singleton {
             if (listaCon != null) consultaDAO.setLista(listaCon);
 
             List<VacunaDTO> listaVac = Serializador.cargar(ARCHIVO_VACUNAS);
-            if (listaVac != null) vacunaDAO.setLista(listaVac); // NUEVO
+            if (listaVac != null) vacunaDAO.setLista(listaVac); 
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

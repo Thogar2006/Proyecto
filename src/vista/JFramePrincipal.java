@@ -23,10 +23,7 @@ public class JFramePrincipal extends JFrame {
         tabs.addTab("Cita", new PanelCita());
         tabs.addTab("Consulta", new PanelConsulta());
         tabs.addTab("Vacuna", new PanelVacuna());
-        // Puedes agregar más tabs aquí, como:
-        // tabs.addTab("Mascotas", new PanelMascota());
-        // tabs.addTab("Citas", new PanelCita());
-        // tabs.addTab("Vacunas", new PanelVacuna());
+        
 
         add(tabs);
     }

@@ -23,19 +23,53 @@ public class MascotaDTO implements Serializable {
         this.propietario = propietario;
     }
 
-    public int getId() { return id; }
-    public String getNombre() { return nombre; }
-    public String getEspecie() { return especie; }
-    public String getRaza() { return raza; }
-    public int getEdad() { return edad; }
-    public PropietarioDTO getPropietario() { return propietario; }
+    public int getId() {
+        return id;
+    }
 
-    public void setId(int id) { this.id = id; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public void setEspecie(String especie) { this.especie = especie; }
-    public void setRaza(String raza) { this.raza = raza; }
-    public void setEdad(int edad) { this.edad = edad; }
-    public void setPropietario(PropietarioDTO propietario) { this.propietario = propietario; }
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getEspecie() {
+        return especie;
+    }
+
+    public void setEspecie(String especie) {
+        this.especie = especie;
+    }
+
+    public String getRaza() {
+        return raza;
+    }
+
+    public void setRaza(String raza) {
+        this.raza = raza;
+    }
+
+    public int getEdad() {
+        return edad;
+    }
+
+    public void setEdad(int edad) {
+        this.edad = edad;
+    }
+
+    public PropietarioDTO getPropietario() {
+        return propietario;
+    }
+
+    public void setPropietario(PropietarioDTO propietario) {
+        this.propietario = propietario;
+    }
 
     @Override
     public String toString() {

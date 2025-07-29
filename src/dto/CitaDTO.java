@@ -31,17 +31,52 @@ public class CitaDTO implements Serializable {
         this.motivo = motivo;
     }
 
-    public int getId() { return id; }
-    public MascotaDTO getMascota() { return mascota; }
-    public PropietarioDTO getPropietario() { return propietario; }
-    public VeterinarioDTO getVeterinario() { return veterinario; }
-    public LocalDateTime getFechaHora() { return fechaHora; }
-    public String getMotivo() { return motivo; }
+    public int getId() {
+        return id; 
+    }
+    
+    public MascotaDTO getMascota() {
+        return mascota; 
+    }
+    
+    public PropietarioDTO getPropietario() {
+        return propietario; 
+    }
+    
+    public VeterinarioDTO getVeterinario() {
+        return veterinario; 
+    }
+    
+    public LocalDateTime getFechaHora() {
+        return fechaHora; 
+    }
+    
+    public String getMotivo() {
+        return motivo; 
+    }
 
-    public void setId(int id) { this.id = id; }
-    public void setMascota(MascotaDTO mascota) { this.mascota = mascota; }
-    public void setPropietario(PropietarioDTO propietario) { this.propietario = propietario; }
-    public void setVeterinario(VeterinarioDTO veterinario) { this.veterinario = veterinario; }
-    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
+    public void setId(int id) {
+        this.id = id; 
+    }
+    
+    public void setMascota(MascotaDTO mascota) {
+        this.mascota = mascota; 
+    }
+    
+    public void setPropietario(PropietarioDTO propietario) {
+        this.propietario = propietario; 
+    }
+    
+    public void setVeterinario(VeterinarioDTO veterinario) {
+        this.veterinario = veterinario; 
+    }
+    
+    public void setFechaHora(LocalDateTime fechaHora) {
+        this.fechaHora = fechaHora; 
+    }
+    
+    public void setMotivo(String motivo) {
+        this.motivo = motivo; 
+    }
+    
 }
